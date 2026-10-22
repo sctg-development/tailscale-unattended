@@ -41,16 +41,16 @@ Run the script directly from GitHub without cloning the repository:
 
 ```powershell
 # Install and connect to Tailscale (standard)
-irm https://raw.githubusercontent.com/sctg-development/tailscale-unattended/refs/heads/main/tailscale.ps1 | iex; tailscale.ps1 connect -AuthKey "tskey-abcdef123" -AdvertiseTags "eng","prod"
+irm https://raw.githubusercontent.com/sctg-development/tailscale-unattended/main/tailscale.ps1 -OutFile $env:TEMP\tailscale.ps1; & $env:TEMP\tailscale.ps1 connect -AuthKey "tskey-abcdef123" -AdvertiseTags "eng","prod"
 
 # Install and connect to a custom Headscale server
-irm https://raw.githubusercontent.com/sctg-development/tailscale-unattended/refs/heads/main/tailscale.ps1 | iex; tailscale.ps1 connect -AuthKey "tskey-abcdef123" -LoginURL "https://your-headscale.example.com"
+irm https://raw.githubusercontent.com/sctg-development/tailscale-unattended/main/tailscale.ps1 -OutFile $env:TEMP\tailscale.ps1; & $env:TEMP\tailscale.ps1 connect -AuthKey "tskey-abcdef123" -LoginURL "https://your-headscale.example.com"
 
 # Uninstall Tailscale
-irm https://raw.githubusercontent.com/sctg-development/tailscale-unattended/refs/heads/main/tailscale.ps1 | iex; tailscale.ps1 disconnect
+irm https://raw.githubusercontent.com/sctg-development/tailscale-unattended/main/tailscale.ps1 -OutFile $env:TEMP\tailscale.ps1; & $env:TEMP\tailscale.ps1 disconnect
 ```
 
-> **Note**: The script is loaded into memory and executed directly. You must run PowerShell **as Administrator** for these commands to work.
+> **Note**: The script is downloaded to a temporary file and then executed. You must run PowerShell **as Administrator** for these commands to work.
 
 ## Parameters
 `-Command` (Positional)
