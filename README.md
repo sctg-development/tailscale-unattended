@@ -1,13 +1,14 @@
 # Tailscale PowerShell Installation Script
 
-A PowerShell script to install or uninstall [Tailscale](https://tailscale.com/) on Windows using an MSI installer. The script automatically downloads the latest stable Tailscale MSI if none is found in the installation directory. It then installs Tailscale, authenticates using an [auth key](https://tailscale.com/kb/1085/auth-keys/), and optionally applies advertised tags.
+A PowerShell script to install or uninstall [Tailscale](https://tailscale.com/) on Windows using an MSI installer. The script automatically downloads the latest stable Tailscale MSI if none is found in the installation directory. It then installs Tailscale, authenticates using an [auth key](https://tailscale.com/kb/1085/auth-keys/), and optionally applies advertised tags. **Supports custom control servers like Headscale via the `-LoginURL` parameter.**
 
 ## Features
 
 - **Automated Download**: Fetches the latest Tailscale MSI installer automatically.
 - **Simple Install & Uninstall**: One script can both install (`connect`) and uninstall (`disconnect`) Tailscale.
 - **Supports Tags**: Pass any Tailscale tags you need. The script automatically prepends `tag:` if missing.
-- **Configurable Defaults**: Optionally set a default `AuthKey` and `DefaultTags` in the configuration section at the top of the script.
+- **Configurable Defaults**: Optionally set a default `AuthKey`, `DefaultTags`, and `LoginURL` in the configuration section at the top of the script.
+- **Custom Control Server**: Use `-LoginURL` to connect to a custom Tailscale control server such as [Headscale](https://headscale.net/).
 
 ## Requirements
 
@@ -27,9 +28,29 @@ A PowerShell script to install or uninstall [Tailscale](https://tailscale.com/) 
 # Install and connect to your Tailnet (with an auth key and optional tags)
 .\tailscale.ps1 connect -AuthKey "tskey-abcdef123" -AdvertiseTags "eng","prod"
 
+# Install and connect to a custom Headscale server
+.\tailscale.ps1 connect -AuthKey "tskey-abcdef123" -LoginURL "https://your-headscale.example.com"
+
 # Uninstall and remove Tailscale from your system
 .\tailscale.ps1 disconnect
 ```
+
+## One-liner (Remote Execution)
+
+Run the script directly from GitHub without cloning the repository:
+
+```powershell
+# Install and connect to Tailscale (standard)
+irm https://raw.githubusercontent.com/rlemeill/tailscale-unattended/main/tailscale.ps1 | iex; tailscale.ps1 connect -AuthKey "tskey-abcdef123" -AdvertiseTags "eng","prod"
+
+# Install and connect to a custom Headscale server
+irm https://raw.githubusercontent.com/rlemeill/tailscale-unattended/main/tailscale.ps1 | iex; tailscale.ps1 connect -AuthKey "tskey-abcdef123" -LoginURL "https://your-headscale.example.com"
+
+# Uninstall Tailscale
+irm https://raw.githubusercontent.com/rlemeill/tailscale-unattended/main/tailscale.ps1 | iex; tailscale.ps1 disconnect
+```
+
+> **Note**: The script is loaded into memory and executed directly. You must run PowerShell **as Administrator** for these commands to work.
 
 ## Parameters
 `-Command` (Positional)
@@ -43,6 +64,9 @@ A PowerShell script to install or uninstall [Tailscale](https://tailscale.com/) 
 `-AdvertiseTags`
 (Optional) An array of tags you want to advertise. Example: `"dev","prod"`.
 
+`-LoginURL`
+(Optional) The URL of a custom Tailscale control server (e.g., your Headscale instance). Example: `"https://your-headscale.example.com"`.
+
 `-Help`
 Displays help information. Equivalent to `-Command help`.
 
@@ -50,6 +74,8 @@ Displays help information. Equivalent to `-Command help`.
 **Default AuthKey**: Update `AuthKey` in `$script:Config` at the top of the script if you want a hardcoded default.
 
 **Default Tags**: Update `DefaultTags` in `$script:Config` if you commonly use the same tags.
+
+**Default Login Server**: Update `LoginURL` in `$script:Config` if you want to use a custom control server (e.g., Headscale) by default.
 
 **Installer Options**: Customize `MsiArgs` in `$script:Config` for different Tailscale MSI settings (for example, enabling or disabling certain Tailscale features).
 

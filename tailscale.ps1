@@ -5,6 +5,7 @@ param (
     [string]$Command,
     [Alias('auth-key')][string]$AuthKey,
     [Alias('advertise-tags')][string[]]$AdvertiseTags,
+    [Alias('login-url')][string]$LoginURL,
     [Alias('h')][switch]$Help
 )
 
@@ -14,6 +15,7 @@ $ErrorActionPreference = 'Stop'
 $script:Config = @{
     AuthKey     = ''  # Optionally set a default auth key
     DefaultTags = @('')  # Optionally set default tags
+    LoginURL    = ''  # Optionally set a default login server URL (e.g., https://your-headscale.example.com)
     TempDir     = $env:TEMP
     InstallDir  = Join-Path $env:ProgramFiles 'Tailscale'
     BaseUrl     = 'https://pkgs.tailscale.com'
@@ -94,7 +96,8 @@ function Install-Tailscale {
     param(
         [Parameter(Mandatory = $true)][string]$InstallerPath,
         [Parameter(Mandatory = $true)][string]$AuthKey,
-        [string[]]$Tags
+        [string[]]$Tags,
+        [string]$LoginURL
     )
 
     Write-Host "Installing Tailscale..."
@@ -104,6 +107,9 @@ function Install-Tailscale {
 
     $tailscaleExe = Join-Path $script:Config.InstallDir 'tailscale.exe'
     $upArgs = @('up', '--unattended', "--auth-key=$AuthKey", "--reset")
+    if ($LoginURL) {
+        $upArgs += "--login-server=$LoginURL"
+    }
     if ($Tags) {
         $formattedTags = Format-Tags -Tags $Tags
         if ($formattedTags) {
@@ -203,9 +209,11 @@ Commands:
 Options:
     -AuthKey         Specify auth key for the 'connect' command
     -AdvertiseTags   Specify list of tags (e.g., "dev", "prod"), 'tag:' prefix optional
+    -LoginURL        Specify custom login server URL (e.g., https://your-headscale.example.com)
 
 Examples:
     .\tailscale.ps1 connect -AuthKey "tskey-abcdef12345" -AdvertiseTags "eng","prod"
+    .\tailscale.ps1 connect -AuthKey "tskey-abcdef12345" -LoginURL "https://your-headscale.example.com"
     .\tailscale.ps1 disconnect
 "@
 }
@@ -229,6 +237,10 @@ try {
                 $useAuthKey = Read-Host "Please enter your Tailscale Auth key"
             }
             
+            # Handle login URL (use parameter, then config default)
+            $useLoginURL = $LoginURL
+            if (-not $useLoginURL) { $useLoginURL = $script:Config.LoginURL }
+            
             # Handle tags (prompt if not supplied or configured by default)
             $useTags = @()
             if ($AdvertiseTags) {
@@ -244,7 +256,7 @@ try {
                 }
             }
             
-            Install-Tailscale -InstallerPath $installerPath -AuthKey $useAuthKey -Tags $useTags
+            Install-Tailscale -InstallerPath $installerPath -AuthKey $useAuthKey -Tags $useTags -LoginURL $useLoginURL
         }
         'disconnect' {
             Uninstall-Tailscale
